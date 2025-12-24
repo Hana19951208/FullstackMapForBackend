@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="0.8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- 背景铺满黑色 -->
+  <rect width="32" height="32" rx="4" fill="#000000" />
+  <!-- 技术地图标志性坐标点，边缘微调以最大化视觉面积 -->
+  <g filter="url(#glow)">
+    <path d="M16 4C10.5 4 6 8.5 6 14C6 21 16 28 16 28C16 28 26 21 26 14C26 8.5 21.5 4 16 4Z" 
+          fill="none" 
+          stroke="#00d2ff" 
+          stroke-width="2.5" />
+    <circle cx="16" cy="14" r="4" fill="none" stroke="#00d2ff" stroke-width="2" />
+    <!-- 装饰性电路点 -->
+    <circle cx="26" cy="14" r="1" fill="#00d2ff" />
+    <circle cx="6" cy="14" r="1" fill="#00d2ff" />
+    <circle cx="16" cy="28" r="1" fill="#00d2ff" />
+  </g>
+</svg>
