@@ -1,24 +1,36 @@
 
-import React, { useState, useMemo } from 'react';
-import { INITIAL_TECH_STACK } from './constants';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TechItem, TechCategory, SearchState } from './types';
 import DetailModal from './components/DetailModal';
 import IconRenderer from './components/IconRenderer';
 import { generateTechExplanation } from './services/geminiService';
+import { getTechItems, saveTechItem } from './services/techDataService';
 
 const CATEGORIES = ['全部', ...Object.values(TechCategory)];
 
 const App: React.FC = () => {
-  const [techStack, setTechStack] = useState<TechItem[]>(INITIAL_TECH_STACK);
+  const [techStack, setTechStack] = useState<TechItem[]>([]);
   const [search, setSearch] = useState<SearchState>({ query: '', category: '全部' });
   const [selectedTech, setSelectedTech] = useState<TechItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [newTechInput, setNewTechInput] = useState('');
+
+  // 初始化从 Supabase 加载数据
+  useEffect(() => {
+    async function loadData() {
+      setIsInitialLoading(true);
+      const data = await getTechItems();
+      setTechStack(data);
+      setIsInitialLoading(false);
+    }
+    loadData();
+  }, []);
 
   const filteredStack = useMemo(() => {
     return techStack.filter(item => {
-      const matchesQuery = item.name.toLowerCase().includes(search.query.toLowerCase()) || 
-                           item.explanation.toLowerCase().includes(search.query.toLowerCase());
+      const matchesQuery = item.name.toLowerCase().includes(search.query.toLowerCase()) ||
+        item.explanation.toLowerCase().includes(search.query.toLowerCase());
       const matchesCategory = search.category === '全部' || item.category === search.category;
       return matchesQuery && matchesCategory;
     });
@@ -32,7 +44,11 @@ const App: React.FC = () => {
     try {
       const result = await generateTechExplanation(newTechInput);
       if (result) {
-        if (!techStack.find(t => t.name.toLowerCase() === result.name.toLowerCase())) {
+        // 先存入 Supabase 数据库
+        await saveTechItem(result);
+
+        // 更新本地状态
+        if (!techStack.find(t => t.id === result.id)) {
           setTechStack(prev => [...prev, result]);
         }
         setSelectedTech(result);
@@ -64,7 +80,7 @@ const App: React.FC = () => {
       <div className="relative mb-12 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
           <div className="flex-1 relative">
-            <input 
+            <input
               type="text"
               placeholder="搜索技术名词 (如 Next.js, Webpack...)"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 pl-12 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -75,17 +91,16 @@ const App: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          
+
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSearch(prev => ({ ...prev, category: cat as any }))}
-                className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  search.category === cat 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${search.category === cat
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                     : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -95,7 +110,7 @@ const App: React.FC = () => {
 
         {/* AI Generator Input */}
         <form onSubmit={handleAskAI} className="flex gap-2 w-full max-w-3xl mx-auto">
-          <input 
+          <input
             type="text"
             placeholder="发现新名词？问问 AI (例如: Turbopack, Qwik, Svelte)"
             className="flex-1 bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl px-4 py-3 focus:border-blue-500 focus:bg-zinc-950 outline-none transition-all"
@@ -103,7 +118,7 @@ const App: React.FC = () => {
             onChange={(e) => setNewTechInput(e.target.value)}
             disabled={isLoading}
           />
-          <button 
+          <button
             type="submit"
             disabled={isLoading}
             className="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -119,40 +134,56 @@ const App: React.FC = () => {
 
       {/* Tech Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-        {filteredStack.map((tech) => (
-          <div 
-            key={tech.id}
-            onClick={() => setSelectedTech(tech)}
-            className="tech-card group cursor-pointer bg-zinc-900 border border-zinc-800 rounded-2xl p-6 transition-all hover:border-zinc-500 flex flex-col h-full"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <IconRenderer 
-                icon={tech.icon} 
-                name={tech.name} 
-                className="w-12 h-12 text-4xl group-hover:scale-110 transition-transform" 
-              />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border border-zinc-800 px-2 py-1 rounded">
-                {tech.category}
-              </span>
+        {isInitialLoading ? (
+          // 加载骨架屏占位
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="animate-pulse bg-zinc-900 border border-zinc-800 rounded-2xl p-6 h-64">
+              <div className="flex justify-between mb-4">
+                <div className="w-12 h-12 bg-zinc-800 rounded-lg"></div>
+                <div className="w-16 h-4 bg-zinc-800 rounded"></div>
+              </div>
+              <div className="w-3/4 h-6 bg-zinc-800 rounded mb-4"></div>
+              <div className="w-full h-4 bg-zinc-800 rounded mb-2"></div>
+              <div className="w-full h-4 bg-zinc-800 rounded mb-2"></div>
+              <div className="w-2/3 h-4 bg-zinc-800 rounded"></div>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">{tech.name}</h3>
-            <p className="text-zinc-400 text-sm line-clamp-3 mb-6 flex-grow">
-              {tech.explanation}
-            </p>
-            <div className="pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-mono">
-              <span className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                {tech.analogy.split(' ')[0]}
-              </span>
-              <span className="group-hover:text-blue-400 transition-colors">查看演进故事 &rarr;</span>
+          ))
+        ) : (
+          filteredStack.map((tech) => (
+            <div
+              key={tech.id}
+              onClick={() => setSelectedTech(tech)}
+              className="tech-card group cursor-pointer bg-zinc-900 border border-zinc-800 rounded-2xl p-6 transition-all hover:border-zinc-500 flex flex-col h-full"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <IconRenderer
+                  icon={tech.icon}
+                  name={tech.name}
+                  className="w-12 h-12 text-4xl group-hover:scale-110 transition-transform"
+                />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border border-zinc-800 px-2 py-1 rounded">
+                  {tech.category}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">{tech.name}</h3>
+              <p className="text-zinc-400 text-sm line-clamp-3 mb-6 flex-grow">
+                {tech.explanation}
+              </p>
+              <div className="pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                  {tech.analogy.split(' ')[0]}
+                </span>
+                <span className="group-hover:text-blue-400 transition-colors">查看演进故事 &rarr;</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
 
-        {filteredStack.length === 0 && !isLoading && (
+        {!isInitialLoading && filteredStack.length === 0 && !isLoading && (
           <div className="col-span-full py-20 text-center bg-zinc-900/50 rounded-3xl border border-zinc-800 border-dashed">
             <p className="text-zinc-500 mb-4">没有找到相关技术...</p>
-            <button 
+            <button
               onClick={() => setSearch({ query: '', category: '全部' })}
               className="text-blue-500 hover:underline"
             >
@@ -174,9 +205,9 @@ const App: React.FC = () => {
 
       {/* Detail Modal */}
       {selectedTech && (
-        <DetailModal 
-          item={selectedTech} 
-          onClose={() => setSelectedTech(null)} 
+        <DetailModal
+          item={selectedTech}
+          onClose={() => setSelectedTech(null)}
         />
       )}
     </div>

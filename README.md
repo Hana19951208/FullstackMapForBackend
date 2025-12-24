@@ -21,9 +21,11 @@
    ```
 
 2. **配置环境**:
-   在 `.env.local` 中设置你的 `GEMINI_API_KEY`:
+   在 `.env.local` 中配置以下环境变量:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
 3. **启动开发服务器**:
