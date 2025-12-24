@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { INITIAL_TECH_STACK } from './constants';
 import { TechItem, TechCategory, SearchState } from './types';
 import DetailModal from './components/DetailModal';
+import IconRenderer from './components/IconRenderer';
 import { generateTechExplanation } from './services/geminiService';
 
 const CATEGORIES = ['全部', ...Object.values(TechCategory)];
@@ -59,9 +60,9 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      {/* Control Panel */}
-      <div className="sticky top-4 z-40 mb-12 flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl shadow-xl">
+      {/* Control Panel - Removed sticky to avoid blocking content */}
+      <div className="z-40 mb-12 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
           <div className="flex-1 relative">
             <input 
               type="text"
@@ -125,7 +126,11 @@ const App: React.FC = () => {
             className="tech-card group cursor-pointer bg-zinc-900 border border-zinc-800 rounded-2xl p-6 transition-all hover:border-zinc-500 flex flex-col h-full"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">{tech.icon}</span>
+              <IconRenderer 
+                icon={tech.icon} 
+                name={tech.name} 
+                className="w-12 h-12 text-4xl group-hover:scale-110 transition-transform" 
+              />
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border border-zinc-800 px-2 py-1 rounded">
                 {tech.category}
               </span>

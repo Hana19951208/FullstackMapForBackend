@@ -10,7 +10,8 @@ export async function generateTechExplanation(techName: string): Promise<TechIte
     contents: `Explain the frontend/fullstack technology "${techName}" to a senior backend engineer using the "Vibe Coding" mindset.
     The response must strictly follow the Chinese tech map logic.
     Categories: 应用框架, 样式与UI, 数据与状态, 部署与基建, 构建工具, API与通讯.
-    Include historical context: what problem it solved, what was before, and what is the current trend.`,
+    Include historical context: what problem it solved, what was before, and what is the current trend.
+    For the "icon" field, provide either a single emoji OR a high-quality direct SVG/PNG URL of the technology's official logo if available.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -29,7 +30,7 @@ export async function generateTechExplanation(techName: string): Promise<TechIte
           successor: { type: Type.STRING, description: "后继/现状" },
           explanation: { type: Type.STRING },
           story: { type: Type.STRING },
-          icon: { type: Type.STRING }
+          icon: { type: Type.STRING, description: "A single emoji or a valid image URL" }
         },
         required: ["id", "name", "category", "coordinate", "analogy", "problem", "predecessor", "successor", "explanation", "story", "icon"]
       }

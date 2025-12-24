@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { TechItem } from '../types';
+import IconRenderer from './IconRenderer';
 
 interface DetailModalProps {
   item: TechItem;
@@ -13,8 +14,12 @@ const DetailModal: React.FC<DetailModalProps> = ({ item, onClose }) => {
       <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
         {/* Header */}
         <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{item.icon}</span>
+          <div className="flex items-center gap-4">
+            <IconRenderer 
+              icon={item.icon} 
+              name={item.name} 
+              className="w-14 h-14 text-4xl" 
+            />
             <div>
               <h2 className="text-2xl font-bold text-white">{item.name}</h2>
               <span className="text-xs uppercase tracking-widest text-blue-400 font-semibold">{item.category}</span>
