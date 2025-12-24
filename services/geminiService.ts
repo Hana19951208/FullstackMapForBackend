@@ -2,9 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TechItem, TechCategory } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function generateTechExplanation(techName: string): Promise<TechItem | null> {
+  // 在函数内部初始化，确保在使用时才读取环境变量，并防止全局作用域下的 ReferenceError
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Explain the frontend/fullstack technology "${techName}" to a senior backend engineer using the "Vibe Coding" mindset.

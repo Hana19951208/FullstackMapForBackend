@@ -60,8 +60,8 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      {/* Control Panel - Removed sticky to avoid blocking content */}
-      <div className="z-40 mb-12 flex flex-col gap-4">
+      {/* Control Panel - 彻底移除 sticky 类名，确保随页面滚动 */}
+      <div className="relative mb-12 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
           <div className="flex-1 relative">
             <input 
@@ -118,7 +118,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Tech Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
         {filteredStack.map((tech) => (
           <div 
             key={tech.id}
@@ -166,9 +166,9 @@ const App: React.FC = () => {
       <footer className="mt-24 pt-12 border-t border-zinc-900 text-center text-zinc-600">
         <p className="mb-4">全栈之路，道阻且长，Vibe Coding 助你乘风破浪。</p>
         <div className="flex justify-center gap-6 text-sm">
-          <span>&copy; 2024 Vibe Coding Lab</span>
+          <span>&copy; 2025.12.25 Vibe Coding Lab</span>
           <span>·</span>
-          <span>Powered by Gemini 3.0</span>
+          <span>Powered by Hana</span>
         </div>
       </footer>
 
